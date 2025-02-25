@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Domotic CH</title>
+    <link rel="manifest" href="manifest.json">
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/service-worker.js').then(() => {
+                console.log("Service Worker registrado");
+            }).catch(error => {
+                console.log("Error registrando Service Worker", error);
+            });
+        }
+    </script>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; background-color: #007BFF; color: white; margin: 0; padding: 0; }
+        .container { width: 90%; max-width: 400px; margin: auto; padding: 20px; }
+        .btn { width: 100%; padding: 15px; margin: 10px 0; font-size: 18px; cursor: pointer; background-color: white; color: #007BFF; border: none; border-radius: 5px; }
+        .btn:hover { background-color: #0056b3; color: white; }
+        .grid-container { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; padding: 10px; }
+        .grid-item { padding: 15px; background-color: white; color: #007BFF; border-radius: 5px; cursor: pointer; font-size: 14px; }
+        .grid-item.active { background-color: #0056b3; color: white; }
+        .back-btn { margin-top: 20px; }
+        @media (max-width: 600px) {
+            .grid-container { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container" id="mainMenu">
+        <h1>Domotic CH</h1>
+        <button class="btn" onclick="irA('iluminacion')">Iluminación</button>
+        <button class="btn" onclick="irA('alertas')">Alertas</button>
+        <button class="btn" onclick="irA('cortinas')">Cortinas</button>
+        <button class="btn" onclick="irA('sensores')">Sensores</button>
+        <button class="btn" onclick="conectarBluetooth()">Conectar Bluetooth</button>
+    </div>
+
+    <div id="iluminacion" class="container" style="display:none;">
+        <h2>Iluminación</h2>
+        <div class="grid-container">
+            <div class="grid-item" onclick="toggleLuz('habitacion1', this)">Habitación 1</div>
+            <div class="grid-item" onclick="toggleLuz('habitacion2', this)">Habitación 2</div>
+            <div class="grid-item" onclick="toggleLuz('cocina', this)">Cocina</div>
+            <div class="grid-item" onclick="toggleLuz('estudio', this)">Estudio</div>
+            <div class="grid-item" onclick="toggleLuz('bano', this)">Baño</div>
+            <div class="grid-item" onclick="toggleLuz('todo', this)">Encender/Apagar Todo</div>
+        </div>
+        <button class="btn back-btn" onclick="volver()">Volver</button>
+    </div>
+
+    <div id="cortinas" class="container" style="display:none;">
+        <h2>Cortinas</h2>
+        <button class="btn" onclick="controlarCortina(180)">Subir</button>
+        <button class="btn" onclick="controlarCortina(0)">Bajar</button>
+        <button class="btn back-btn" onclick="volver()">Volver</button>
+    </div>
+
+    <div id="sensores" class="container" style="display:none;">
+        <h2>Sensores</h2>
+        <p>Humedad: <span id="sensorHumedad">0</span>%</p>
+        <p>Infrarrojo: <span id="sensorInfrarrojo">0</span></p>
+        <p>Ultrasonido: <span id="sensorUltrasonido">0</span> cm</p>
+        <button class="btn back-btn" onclick="volver()">Volver</button>
+    </div>
+
+    <div id="alertas" class="container" style="display:none;">
+        <h2>Alertas</h2>
+        <p id="alertaMensaje">No hay alertas</p>
+        <button class="btn back-btn" onclick="volver()">Volver</button>
+    </div>
+
+    <script>
+        let device, server, service, characteristic;
+        let luces = {habitacion1: false, habitacion2: false, cocina: false, estudio: false, bano: false, todo: false};
+
+        function irA(seccion) {
+            document.getElementById("mainMenu").style.display = "none";
+            document.getElementById(seccion).style.display = "block";
+        }
+
+        function volver() {
+            document.querySelectorAll(".container").forEach(el => el.style.display = "none");
+            document.getElementById("mainMenu").style.display = "block";
+        }
+
+        function recibirDatos(event) {
+            let decoder = new TextDecoder("utf-8");
+            let data = decoder.decode(event.target.value);
+            let [humedad, infrarrojo, ultrasonido] = data.split(",");
+            document.getElementById("sensorHumedad").innerText = humedad;
+            document.getElementById("sensorInfrarrojo").innerText = infrarrojo;
+            document.getElementById("sensorUltrasonido").innerText = ultrasonido;
+
+            let alerta = "No hay alertas";
+            if (humedad < 20) alerta = "¡Alerta! Posible ambiente demasiado seco.";
+            else if (humedad > 80) alerta = "¡Alerta! Niveles de humedad muy altos.";
+            if (infrarrojo != 0) alerta = "¡Alerta! Movimiento detectado en la entrada principal.";
+            if (ultrasonido < 10) alerta = "¡Alerta! Actividad detectada cerca de las ventanas.";
+            document.getElementById("alertaMensaje").innerText = alerta;
+        }
+    </script>
+</body>
+</html>
