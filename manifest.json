@@ -2,7 +2,7 @@
     "name": "Domotic CH",
     "short_name": "Domotic CH",
     "description": "Aplicación de domótica para el control de luces, cortinas y sensores mediante Bluetooth.",
-    "start_url": "/index.html",
+    "start_url": "https://juvillatep.github.io/Domotic-CH/",
     "display": "standalone",
     "background_color": "#007BFF",
     "theme_color": "#007BFF",
