@@ -49,7 +49,7 @@
 
     <script>
         let device, server, service, characteristic;
-        let luces = {habitacion1: false, habitacion2: false, cocina: false, estudio: false, bano: false, todo: false};
+        let luces = {habitacion1: false, habitacion2: false, cocina: false, estudio: false, bano: false};
 
         function irA(seccion) {
             document.getElementById("mainMenu").style.display = "none";
@@ -62,11 +62,28 @@
         }
 
         function toggleLuz(id, elemento) {
-            luces[id] = !luces[id];
-            elemento.classList.toggle("active", luces[id]);
-            console.log(`Luz ${id}: ${luces[id] ? "Encendida" : "Apagada"}`);
-        }
+            if (id === "todo") {
+                // Verificar cuántas luces están encendidas
+                let lucesEncendidas = Object.values(luces).filter(v => v).length;
+                let nuevoEstado = lucesEncendidas < Object.keys(luces).length / 2; // Si la mayoría están apagadas, encender todo
 
+                // Cambiar el estado de todas las luces
+                for (let key in luces) {
+                    luces[key] = nuevoEstado;
+                    let luzElemento = document.querySelector(`.grid-item[onclick*="${key}"]`);
+                    if (luzElemento) {
+                        luzElemento.classList.toggle("active", nuevoEstado);
+                    }
+                }
+            } else {
+                // Encender o apagar una luz individual
+                luces[id] = !luces[id];
+                elemento.classList.toggle("active", luces[id]);
+            }
+    
+            console.log("Estado de las luces:", luces);
+        }
+    
         async function conectarBluetooth() {
             try {
                 console.log("Intentando conectar vía Bluetooth...");
@@ -74,18 +91,18 @@
                     acceptAllDevices: true,
                     optionalServices: ['0000ffe0-0000-1000-8000-00805f9b34fb']
                 });
-
+    
                 server = await device.gatt.connect();
                 console.log("Conectado a:", device.name);
-
+    
                 service = await server.getPrimaryService('0000ffe0-0000-1000-8000-00805f9b34fb');
                 characteristic = await service.getCharacteristic('0000ffe1-0000-1000-8000-00805f9b34fb');
-
+    
                 console.log("Servicio y característica obtenidos.");
                 characteristic.addEventListener("characteristicvaluechanged", recibirDatos);
                 await characteristic.startNotifications();
                 console.log("Notificaciones activadas.");
-
+    
                 alert("¡Conectado a " + device.name + "!");
             } catch (error) {
                 console.error("Error al conectar Bluetooth:", error);
@@ -93,5 +110,6 @@
             }
         }
     </script>
+
 </body>
 </html>
