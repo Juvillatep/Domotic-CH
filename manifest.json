@@ -1,7 +1,8 @@
 {
     "name": "Domotic CH",
     "short_name": "Domotic CH",
-    "start_url": "Domotic-CH/index.html",
+    "description": "Aplicación de domótica para el control de luces, cortinas y sensores mediante Bluetooth.",
+    "start_url": "/index.html",
     "display": "standalone",
     "background_color": "#007BFF",
     "theme_color": "#007BFF",
@@ -14,4 +15,5 @@
         }
     ]
 }
+
 
