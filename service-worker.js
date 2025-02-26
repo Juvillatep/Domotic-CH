@@ -2,10 +2,10 @@ self.addEventListener("install", event => {
     event.waitUntil(
         caches.open("domotic-ch").then(cache => {
             return cache.addAll([
-                "/",
-                "/index.html",
-                "/manifest.json",
-                "/icon.png"
+                "/Domotic-CH/",
+                "/Domotic-CH/index.html",
+                "/Domotic-CH/manifest.json",
+                "/Domotic-CH/icon.png"
             ]);
         })
     );
