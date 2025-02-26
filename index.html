@@ -7,9 +7,9 @@
     <link rel="manifest" href="manifest.json">
     <script>
         if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('./service-worker.js')
-        .then(() => console.log("Service Worker registrado"))
-        .catch(error => console.log("Error registrando Service Worker", error));
+            navigator.serviceWorker.register('./service-worker.js')
+            .then(() => console.log("Service Worker registrado"))
+            .catch(error => console.log("Error registrando Service Worker", error));
         }
     </script>
     <style>
@@ -21,9 +21,7 @@
         .grid-item { padding: 15px; background-color: white; color: #007BFF; border-radius: 5px; cursor: pointer; font-size: 14px; }
         .grid-item.active { background-color: #0056b3; color: white; }
         .back-btn { margin-top: 20px; }
-        @media (max-width: 600px) {
-            .grid-container { grid-template-columns: 1fr; }
-        }
+        @media (max-width: 600px) { .grid-container { grid-template-columns: 1fr; } }
     </style>
 </head>
 <body>
@@ -49,27 +47,6 @@
         <button class="btn back-btn" onclick="volver()">Volver</button>
     </div>
 
-    <div id="cortinas" class="container" style="display:none;">
-        <h2>Cortinas</h2>
-        <button class="btn" onclick="controlarCortina(180)">Subir</button>
-        <button class="btn" onclick="controlarCortina(0)">Bajar</button>
-        <button class="btn back-btn" onclick="volver()">Volver</button>
-    </div>
-
-    <div id="sensores" class="container" style="display:none;">
-        <h2>Sensores</h2>
-        <p>Humedad: <span id="sensorHumedad">0</span>%</p>
-        <p>Infrarrojo: <span id="sensorInfrarrojo">0</span></p>
-        <p>Ultrasonido: <span id="sensorUltrasonido">0</span> cm</p>
-        <button class="btn back-btn" onclick="volver()">Volver</button>
-    </div>
-
-    <div id="alertas" class="container" style="display:none;">
-        <h2>Alertas</h2>
-        <p id="alertaMensaje">No hay alertas</p>
-        <button class="btn back-btn" onclick="volver()">Volver</button>
-    </div>
-
     <script>
         let device, server, service, characteristic;
         let luces = {habitacion1: false, habitacion2: false, cocina: false, estudio: false, bano: false, todo: false};
@@ -84,20 +61,36 @@
             document.getElementById("mainMenu").style.display = "block";
         }
 
-        function recibirDatos(event) {
-            let decoder = new TextDecoder("utf-8");
-            let data = decoder.decode(event.target.value);
-            let [humedad, infrarrojo, ultrasonido] = data.split(",");
-            document.getElementById("sensorHumedad").innerText = humedad;
-            document.getElementById("sensorInfrarrojo").innerText = infrarrojo;
-            document.getElementById("sensorUltrasonido").innerText = ultrasonido;
+        function toggleLuz(id, elemento) {
+            luces[id] = !luces[id];
+            elemento.classList.toggle("active", luces[id]);
+            console.log(`Luz ${id}: ${luces[id] ? "Encendida" : "Apagada"}`);
+        }
 
-            let alerta = "No hay alertas";
-            if (humedad < 20) alerta = "¡Alerta! Posible ambiente demasiado seco.";
-            else if (humedad > 80) alerta = "¡Alerta! Niveles de humedad muy altos.";
-            if (infrarrojo != 0) alerta = "¡Alerta! Movimiento detectado en la entrada principal.";
-            if (ultrasonido < 10) alerta = "¡Alerta! Actividad detectada cerca de las ventanas.";
-            document.getElementById("alertaMensaje").innerText = alerta;
+        async function conectarBluetooth() {
+            try {
+                console.log("Intentando conectar vía Bluetooth...");
+                device = await navigator.bluetooth.requestDevice({
+                    acceptAllDevices: true,
+                    optionalServices: ['0000ffe0-0000-1000-8000-00805f9b34fb']
+                });
+
+                server = await device.gatt.connect();
+                console.log("Conectado a:", device.name);
+
+                service = await server.getPrimaryService('0000ffe0-0000-1000-8000-00805f9b34fb');
+                characteristic = await service.getCharacteristic('0000ffe1-0000-1000-8000-00805f9b34fb');
+
+                console.log("Servicio y característica obtenidos.");
+                characteristic.addEventListener("characteristicvaluechanged", recibirDatos);
+                await characteristic.startNotifications();
+                console.log("Notificaciones activadas.");
+
+                alert("¡Conectado a " + device.name + "!");
+            } catch (error) {
+                console.error("Error al conectar Bluetooth:", error);
+                alert("Error al conectar Bluetooth.");
+            }
         }
     </script>
 </body>
