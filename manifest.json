@@ -1,7 +1,7 @@
 {
     "name": "Domotic CH",
     "short_name": "Domotic CH",
-    "start_url": "/index.html",
+    "start_url": "Domotic-CH/index.html",
     "display": "standalone",
     "background_color": "#007BFF",
     "theme_color": "#007BFF",
