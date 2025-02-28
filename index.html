@@ -47,6 +47,18 @@
         <button class="btn back-btn" onclick="volver()">Volver</button>
     </div>
 
+    <div id="sensores" class="container" style="display:none;">
+        <h2>Sensores</h2>
+        <p>Aquí irá la información de los sensores.</p>
+        <button class="btn back-btn" onclick="volver()">Volver</button>
+    </div>
+
+    <div id="alertas" class="container" style="display:none;">
+        <h2>Alertas</h2>
+        <p>Aquí aparecerán las alertas del sistema.</p>
+        <button class="btn back-btn" onclick="volver()">Volver</button>
+    </div>
+
     <script>
         let device, server, service, characteristic;
         let luces = {habitacion1: false, habitacion2: false, cocina: false, estudio: false, bano: false};
