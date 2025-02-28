@@ -21,6 +21,8 @@
         .grid-item { padding: 15px; background-color: white; color: #007BFF; border-radius: 5px; cursor: pointer; font-size: 14px; }
         .grid-item.active { background-color: #0056b3; color: white; }
         .back-btn { margin-top: 20px; }
+        input { width: 100%; padding: 10px; font-size: 18px; margin: 10px 0; border-radius: 5px; border: none; text-align: center; }
+        .hidden { display: none; }
         @media (max-width: 600px) { .grid-container { grid-template-columns: 1fr; } }
     </style>
 </head>
@@ -31,6 +33,7 @@
         <button class="btn" onclick="irA('alertas')">Alertas</button>
         <button class="btn" onclick="irA('cortinas')">Cortinas</button>
         <button class="btn" onclick="irA('sensores')">Sensores</button>
+        <button class="btn" onclick="irA('puerta')">Abrir Puerta</button>
         <button class="btn" onclick="conectarBluetooth()">Conectar Bluetooth</button>
     </div>
 
@@ -59,9 +62,31 @@
         <button class="btn back-btn" onclick="volver()">Volver</button>
     </div>
 
+    <div id="puerta" class="container">
+        <h2>Control de Puerta</h2>
+        <button class="btn" onclick="solicitarPin()">Abrir/Cerrar Puerta</button>
+        <button class="btn" onclick="mostrarCambioPin()">Cambiar PIN</button>
+
+        <div id="pinForm" class="hidden">
+            <h3>Ingrese PIN</h3>
+            <input type="password" id="pinInput" maxlength="4" placeholder="****">
+            <button class="btn" onclick="verificarPin()">Confirmar</button>
+        </div>
+
+        <div id="cambioPinForm" class="hidden">
+            <h3>Nuevo PIN</h3>
+            <input type="password" id="nuevoPin" maxlength="4" placeholder="****">
+            <button class="btn" onclick="cambiarPin()">Guardar</button>
+        </div>
+
+        <button class="btn back-btn" onclick="volver()">Volver</button>
+    </div>
+
     <script>
         let device, server, service, characteristic;
         let luces = {habitacion1: false, habitacion2: false, cocina: false, estudio: false, bano: false};
+        let pinGuardado = "1234"; // PIN por defecto
+        let puertaAbierta = false;
 
         function irA(seccion) {
             document.getElementById("mainMenu").style.display = "none";
@@ -94,6 +119,40 @@
             }
     
             console.log("Estado de las luces:", luces);
+        }
+
+        function solicitarPin() {
+            document.getElementById("pinForm").classList.remove("hidden");
+            document.getElementById("cambioPinForm").classList.add("hidden");
+        }
+
+        function verificarPin() {
+            let pinIngresado = document.getElementById("pinInput").value;
+            if (pinIngresado === pinGuardado) {
+                puertaAbierta = !puertaAbierta;
+                alert(puertaAbierta ? "Puerta abierta" : "Puerta cerrada");
+                document.getElementById("pinForm").classList.add("hidden");
+                document.getElementById("pinInput").value = "";
+            } else {
+                alert("PIN incorrecto");
+            }
+        }
+
+        function mostrarCambioPin() {
+            document.getElementById("cambioPinForm").classList.remove("hidden");
+            document.getElementById("pinForm").classList.add("hidden");
+        }
+
+        function cambiarPin() {
+            let nuevoPin = document.getElementById("nuevoPin").value;
+            if (nuevoPin.length === 4) {
+                pinGuardado = nuevoPin;
+                alert("PIN cambiado exitosamente");
+                document.getElementById("cambioPinForm").classList.add("hidden");
+                document.getElementById("nuevoPin").value = "";
+            } else {
+                alert("El PIN debe tener 4 dígitos");
+            }
         }
     
         async function conectarBluetooth() {
