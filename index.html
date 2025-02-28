@@ -62,7 +62,17 @@
         <button class="btn back-btn" onclick="volver()">Volver</button>
     </div>
 
-    <div id="puerta" class="container">
+    <div id="cortinas" class="container" style="display:none;">
+        <h2>Control de Cortinas</h2>
+        <div style="display: flex; flex-direction: column; align-items: center; gap: 10px;">
+            <button class="btn" onclick="controlarCortina('subir')" style="font-size: 24px;">⬆️</button>
+            <button class="btn" onclick="controlarCortina('pausar')" style="font-size: 20px;">⏸️</button>
+            <button class="btn" onclick="controlarCortina('bajar')" style="font-size: 24px;">⬇️</button>
+        </div>
+        <button class="btn back-btn" onclick="volver()">Volver</button>
+    </div>
+
+    <div id="puerta" class="container" style="display:none;">
         <h2>Control de Puerta</h2>
         <button class="btn" onclick="solicitarPin()">Abrir/Cerrar Puerta</button>
         <button class="btn" onclick="mostrarCambioPin()">Cambiar PIN</button>
@@ -85,7 +95,7 @@
     <script>
         let device, server, service, characteristic;
         let luces = {habitacion1: false, habitacion2: false, cocina: false, estudio: false, bano: false};
-        let pinGuardado = "1234"; // PIN por defecto
+        let pinGuardado = localStorage.getItem("pinGuardado") || "1234"; // PIN por defecto
         let puertaAbierta = false;
 
         function irA(seccion) {
@@ -121,6 +131,25 @@
             console.log("Estado de las luces:", luces);
         }
 
+        function controlarCortina(accion) {
+            let mensaje = "";
+            switch (accion) {
+                case 'subir':
+                    mensaje = "Cortina subiendo";
+                    break;
+                case 'pausar':
+                    mensaje = "Cortina pausada";
+                    break;
+                case 'bajar':
+                    mensaje = "Cortina bajando";
+                    break;
+            }
+            console.log(mensaje);
+            alert(mensaje);
+            // Aquí puedes agregar el código para enviar la acción por Bluetooth
+        }
+
+
         function solicitarPin() {
             document.getElementById("pinForm").classList.remove("hidden");
             document.getElementById("cambioPinForm").classList.add("hidden");
@@ -147,6 +176,7 @@
             let nuevoPin = document.getElementById("nuevoPin").value;
             if (nuevoPin.length === 4) {
                 pinGuardado = nuevoPin;
+                localStorage.setItem("pinGuardado", nuevoPin); // Guardar en almacenamiento local
                 alert("PIN cambiado exitosamente");
                 document.getElementById("cambioPinForm").classList.add("hidden");
                 document.getElementById("nuevoPin").value = "";
@@ -165,6 +195,11 @@
     
                 server = await device.gatt.connect();
                 console.log("Conectado a:", device.name);
+
+                device.addEventListener('gattserverdisconnected', () => {
+                    console.log("Se perdió la conexión Bluetooth, intentando reconectar...");
+                    conectarBluetooth(); // Reintento automático
+                });
     
                 service = await server.getPrimaryService('0000ffe0-0000-1000-8000-00805f9b34fb');
                 characteristic = await service.getCharacteristic('0000ffe1-0000-1000-8000-00805f9b34fb');
