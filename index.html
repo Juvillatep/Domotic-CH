@@ -52,6 +52,8 @@
 
     <div id="sensores" class="container" style="display:none;">
         <h2>Sensores</h2>
+        <p>Distancia medida: <strong id="distancia">-- cm</strong></p>
+        <p id="alertaVentana" style="color: yellow; display: none;">⚠️ Actividad detectada cerca de las ventanas</p>
         <p>Aquí irá la información de los sensores.</p>
         <button class="btn back-btn" onclick="volver()">Volver</button>
     </div>
@@ -64,10 +66,10 @@
 
     <div id="cortinas" class="container" style="display:none;">
         <h2>Control de Cortinas</h2>
-        <div style="display: flex; flex-direction: column; align-items: center; gap: 10px;">
-            <button class="btn" onclick="controlarCortina('subir')" style="font-size: 24px;">⬆️</button>
-            <button class="btn" onclick="controlarCortina('pausar')" style="font-size: 20px;">⏸️</button>
-            <button class="btn" onclick="controlarCortina('bajar')" style="font-size: 24px;">⬇️</button>
+        <div class="grid-container">
+            <button class="btn" onclick="enviarComando(0xDD)">▲ Subir</button>
+            <button class="btn" onclick="enviarComando(0xEE)">⏸ Pausa</button>
+            <button class="btn" onclick="enviarComando(0xFF)">▼ Bajar</button>
         </div>
         <button class="btn back-btn" onclick="volver()">Volver</button>
     </div>
@@ -215,6 +217,45 @@
                 alert("Error al conectar Bluetooth.");
             }
         }
+
+        async function enviarComando(comando) {
+            if (!characteristic) {
+                alert("No hay conexión Bluetooth activa.");
+                return;
+            }
+            try {
+                let data = new Uint8Array([comando]);
+                await characteristic.writeValue(data);
+                console.log("Comando enviado:", comando.toString(16).toUpperCase());
+            } catch (error) {
+                console.error("Error enviando comando:", error);
+            }
+        }
+        
+        function recibirDatos(event) {
+            let data = new Uint8Array(event.target.value.buffer);
+            let valor = data[0];
+        
+             if (valor === 0xAA) { 
+                alert("⚠️ Alerta: Movimiento detectado en la entrada"); // Alerta del TCR5000
+            } else if (valor >= 0 && valor <= 255) { 
+                // Asumimos que el valor representa la distancia en cm del HC-SR04
+                document.getElementById("distancia").innerText = `${valor} cm`;
+                if (valor < 15) {
+                    document.getElementById("alertaVentana").style.display = "block"; // Muestra alerta
+                    alert("⚠️ Actividad sospechosa cerca de las ventanas");
+                } else {
+                    document.getElementById("alertaVentana").style.display = "none"; // Oculta alerta
+                }
+            }/* else if (valor === 0xBB) {
+                console.log("Confirmación: Puerta abierta.");
+            } else if (valor === 0xCC) {
+                console.log("Confirmación: Puerta cerrada.");
+            } else {
+                console.log("Distancia medida:", valor, "cm");
+            }*/
+        }
+
     </script>
 
 </body>
